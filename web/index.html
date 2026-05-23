@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JIS College of Engineering — Student Record Management System</title>
+  <meta name="description" content="JIS College of Engineering — Student Record Management System with GPA calculation, attendance tracking, and comprehensive student record management." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="app-layout">
+    <!-- ═══ Sidebar ═══ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="logo-icon">🎓</div>
+          <div class="logo-text">
+            <h1>JIS College of Engineering</h1>
+            <span>Student Record Management System</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Overview</div>
+        <div class="nav-item active" data-page="dashboard" id="nav-dashboard">
+          <span class="icon">📊</span> Dashboard
+        </div>
+
+        <div class="nav-section-title">Management</div>
+        <div class="nav-item" data-page="students" id="nav-students">
+          <span class="icon">👥</span> Students
+        </div>
+        <div class="nav-item" data-page="attendance" id="nav-attendance">
+          <span class="icon">📋</span> Attendance
+        </div>
+        <div class="nav-item" data-page="grades" id="nav-grades">
+          <span class="icon">📈</span> Grades & GPA
+        </div>
+
+        <div class="nav-section-title">Analytics</div>
+        <div class="nav-item" data-page="reports" id="nav-reports">
+          <span class="icon">📝</span> Reports
+        </div>
+        <div class="nav-item" data-page="comparison" id="nav-comparison">
+          <span class="icon">📚</span> Array vs ArrayList
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="sample-data-btn" id="loadSampleDataBtn" onclick="loadSampleData()">
+          <span>⚡</span> Load Sample Data
+        </button>
+      </div>
+    </aside>
+
+    <!-- ═══ Main Content ═══ -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-toggle" id="mobileToggle" onclick="toggleSidebar()">☰</button>
+          <div>
+            <h2 class="page-title" id="pageTitle">Dashboard</h2>
+            <p class="page-subtitle" id="pageSubtitle">Overview of student records</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-search">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="globalSearch" placeholder="Search students..." oninput="handleGlobalSearch(this.value)" />
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+
+        <!-- ═══════ DASHBOARD ═══════ -->
+        <section class="page-section active" id="page-dashboard">
+          <div class="stats-grid stagger-in" id="statsGrid">
+            <div class="stat-card indigo">
+              <div class="stat-icon">👥</div>
+              <div class="stat-value" id="statTotalStudents">0</div>
+              <div class="stat-label">Total Students</div>
+            </div>
+            <div class="stat-card emerald">
+              <div class="stat-icon">📈</div>
+              <div class="stat-value" id="statAvgGPA">0.00</div>
+              <div class="stat-label">Average GPA</div>
+            </div>
+            <div class="stat-card amber">
+              <div class="stat-icon">📋</div>
+              <div class="stat-value" id="statAvgAttendance">0.0%</div>
+              <div class="stat-label">Avg Attendance</div>
+            </div>
+            <div class="stat-card cyan">
+              <div class="stat-icon">🏛️</div>
+              <div class="stat-value" id="statDepartments">0</div>
+              <div class="stat-label">Departments</div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <!-- Top Performers -->
+            <div class="glass-card">
+              <div class="card-header">
+                <h3>🏆 Top Performers</h3>
+              </div>
+              <div class="card-body" id="topPerformers">
+                <div class="empty-state">
+                  <p>Add students to see top performers</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Low Attendance Warning -->
+            <div class="glass-card">
+              <div class="card-header">
+                <h3>⚠️ Low Attendance (&lt;75%)</h3>
+              </div>
+              <div class="card-body" id="lowAttendance">
+                <div class="empty-state">
+                  <p>No attendance warnings</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Department Distribution -->
+            <div class="glass-card full-width">
+              <div class="card-header">
+                <h3>🏛️ Department Distribution</h3>
+              </div>
+              <div class="card-body" id="deptDistribution">
+                <div class="empty-state">
+                  <p>Add students to see department distribution</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════ STUDENTS ═══════ -->
+        <section class="page-section" id="page-students">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-secondary btn-sm" onclick="sortStudents('name')">↕ Name</button>
+              <button class="btn btn-secondary btn-sm" onclick="sortStudents('gpa')">↕ GPA</button>
+              <button class="btn btn-secondary btn-sm" onclick="sortStudents('attendance')">↕ Attendance</button>
+            </div>
+            <button class="btn btn-primary" onclick="openAddStudentModal()">
+              <span>+</span> Add Student
+            </button>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-body" style="padding:0">
+              <table class="data-table" id="studentsTable">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Department</th>
+                    <th>Admission</th>
+                    <th>Attendance</th>
+                    <th>GPA</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="studentsTableBody">
+                </tbody>
+              </table>
+              <div class="empty-state" id="studentsEmpty">
+                <div class="empty-icon">👥</div>
+                <h3>No Students Yet</h3>
+                <p>Add your first student or load sample data to get started.</p>
+                <button class="btn btn-primary" onclick="openAddStudentModal()">+ Add Student</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════ ATTENDANCE ═══════ -->
+        <section class="page-section" id="page-attendance">
+          <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;align-items:flex-end">
+            <div class="form-group" style="margin-bottom:0;min-width:200px">
+              <label>Select Student</label>
+              <select id="attendanceStudentSelect" onchange="showAttendanceHistory()">
+                <option value="">-- Select Student --</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="openAddAttendanceModal()">+ Add Record</button>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-header">
+              <h3>📋 Attendance History</h3>
+              <span id="attendanceSummary" style="font-size:13px;color:var(--text-muted)"></span>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="data-table" id="attendanceTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                </tbody>
+              </table>
+              <div class="empty-state" id="attendanceEmpty">
+                <div class="empty-icon">📋</div>
+                <h3>No Records</h3>
+                <p>Select a student and add attendance records.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════ GRADES & GPA ═══════ -->
+        <section class="page-section" id="page-grades">
+          <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;align-items:flex-end">
+            <div class="form-group" style="margin-bottom:0;min-width:200px">
+              <label>Select Student</label>
+              <select id="gradeStudentSelect" onchange="showGradeDetails()">
+                <option value="">-- Select Student --</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="openAddGradeModal()">+ Add Grade</button>
+          </div>
+
+          <!-- GPA Summary Card -->
+          <div id="gpaSummaryCard" style="display:none">
+            <div class="stats-grid" style="margin-bottom:20px">
+              <div class="stat-card indigo">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="studentGPA">--</div>
+                <div class="stat-label">GPA (10-Point Scale)</div>
+              </div>
+              <div class="stat-card emerald">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value" id="studentAvgMarks">--</div>
+                <div class="stat-label">Average Marks</div>
+              </div>
+              <div class="stat-card amber">
+                <div class="stat-icon">🏅</div>
+                <div class="stat-value" id="studentClassification" style="font-size:20px">--</div>
+                <div class="stat-label">Classification</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-header">
+              <h3>📈 Grade Breakdown</h3>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="data-table" id="gradesTable">
+                <thead>
+                  <tr>
+                    <th>Subject</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                    <th>Grade Point</th>
+                  </tr>
+                </thead>
+                <tbody id="gradesTableBody">
+                </tbody>
+              </table>
+              <div class="empty-state" id="gradesEmpty">
+                <div class="empty-icon">📈</div>
+                <h3>No Grades</h3>
+                <p>Select a student and add grades to see GPA calculations.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════ REPORTS ═══════ -->
+        <section class="page-section" id="page-reports">
+          <div class="report-grid" id="reportContent">
+            <div class="empty-state" style="grid-column:1/-1">
+              <div class="empty-icon">📝</div>
+              <h3>No Data for Reports</h3>
+              <p>Add students to generate summary reports.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════ ARRAY vs ARRAYLIST ═══════ -->
+        <section class="page-section" id="page-comparison">
+          <div class="glass-card" style="margin-bottom:20px">
+            <div class="card-header">
+              <h3>📚 Array vs ArrayList — Comparison</h3>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Feature</th>
+                    <th>Array</th>
+                    <th>ArrayList</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Size</td><td>Fixed at creation</td><td>Dynamic, grows as needed</td></tr>
+                  <tr><td>Type Safety</td><td>No generics support</td><td>Supports generics (&lt;Student&gt;)</td></tr>
+                  <tr><td>Performance</td><td>Slightly faster for indexed access</td><td>Negligible overhead</td></tr>
+                  <tr><td>Memory</td><td>Less overhead</td><td>Slightly more overhead</td></tr>
+                  <tr><td>Built-in Methods</td><td>None (manual code needed)</td><td>add(), remove(), get(), contains()…</td></tr>
+                  <tr><td>Flexibility</td><td>Low — fixed size, manual resizing</td><td>High — auto-resize, easy CRUD</td></tr>
+                  <tr><td>Deletion</td><td>Manual shifting required</td><td>Automatic via remove()</td></tr>
+                  <tr><td>Sorting</td><td>Manual implementation</td><td>Collections.sort() integration</td></tr>
+                  <tr><td>Use Case</td><td>Fixed-size, primitive data</td><td>Dynamic collections, objects</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="glass-card" style="margin-bottom:20px">
+            <div class="card-header">
+              <h3>✅ Why ArrayList Was Chosen For This Project</h3>
+            </div>
+            <div class="card-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div class="report-item" style="background:rgba(139,0,0,0.06);border-color:rgba(139,0,0,0.15)">
+                  <h4>🔄 Dynamic Sizing</h4>
+                  <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">Number of students is unknown at compile time. ArrayList grows and shrinks automatically.</p>
+                </div>
+                <div class="report-item" style="background:rgba(26,26,46,0.12);border-color:rgba(26,26,46,0.3)">
+                  <h4>⚡ Built-in Methods</h4>
+                  <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">add(), remove(), get(), indexOf() — no manual coding for basic operations.</p>
+                </div>
+                <div class="report-item" style="background:rgba(139,0,0,0.08);border-color:rgba(139,0,0,0.2)">
+                  <h4>🗑️ Easy Deletion</h4>
+                  <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">Removing a student from an array requires manual shifting. ArrayList handles it automatically.</p>
+                </div>
+                <div class="report-item" style="background:rgba(26,26,46,0.15);border-color:rgba(26,26,46,0.3)">
+                  <h4>🔗 Collections Framework</h4>
+                  <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">Seamless integration with Collections.sort(), Comparator, and other utility classes.</p>
+                </div>
+                <div class="report-item" style="background:rgba(139,0,0,0.06);border-color:rgba(139,0,0,0.15)">
+                  <h4>🛡️ Type Safety</h4>
+                  <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">Generics (ArrayList&lt;Student&gt;) ensure compile-time type checking — fewer bugs.</p>
+                </div>
+                <div class="report-item" style="background:rgba(26,26,46,0.12);border-color:rgba(26,26,46,0.25)">
+                  <h4>📈 Scalability</h4>
+                  <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">System scales effortlessly from 5 students to 5,000 without code changes.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-header">
+              <h3>🗂️ Data Structures Used in This Project</h3>
+            </div>
+            <div class="card-body">
+              <ul class="report-list">
+                <li><span>ArrayList&lt;Student&gt;</span><span>Primary student record storage</span></li>
+                <li><span>HashMap&lt;Integer, Student&gt;</span><span>O(1) student ID lookup</span></li>
+                <li><span>HashMap&lt;String, Double&gt;</span><span>Subject → Marks mapping per student</span></li>
+                <li><span>LinkedList&lt;AttendanceRecord&gt;</span><span>Chronological attendance log per student</span></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /page-content -->
+    </main>
+  </div><!-- /app-layout -->
+
+  <!-- ═══ MODALS ═══ -->
+
+  <!-- Add/Edit Student Modal -->
+  <div class="modal-overlay" id="studentModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="studentModalTitle">Add New Student</h2>
+        <button class="modal-close" onclick="closeModal('studentModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editStudentId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="studentId">Student ID</label>
+            <input type="number" id="studentIdInput" placeholder="e.g. 1001" />
+          </div>
+          <div class="form-group">
+            <label for="studentAge">Age</label>
+            <input type="number" id="studentAge" placeholder="e.g. 18" min="1" max="100" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="studentName">Full Name</label>
+          <input type="text" id="studentName" placeholder="e.g. Rahul Sharma" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="studentDept">Department</label>
+            <select id="studentDept">
+              <option value="">Select Department</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Mechanical">Mechanical</option>
+              <option value="Civil">Civil</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Information Technology">Information Technology</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="studentAdmission">Admission Date</label>
+            <input type="date" id="studentAdmission" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('studentModal')">Cancel</button>
+        <button class="btn btn-primary" id="saveStudentBtn" onclick="saveStudent()">Add Student</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Student Modal -->
+  <div class="modal-overlay" id="viewStudentModal">
+    <div class="modal" style="max-width:640px">
+      <div class="modal-header">
+        <h2>Student Details</h2>
+        <button class="modal-close" onclick="closeModal('viewStudentModal')">✕</button>
+      </div>
+      <div class="modal-body" id="viewStudentContent">
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal confirm-dialog">
+      <div class="modal-header">
+        <h2>Confirm Delete</h2>
+        <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="confirm-icon">⚠️</div>
+        <h3>Delete Student?</h3>
+        <p id="deleteConfirmText">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Attendance Modal -->
+  <div class="modal-overlay" id="attendanceModal">
+    <div class="modal" style="max-width:440px">
+      <div class="modal-header">
+        <h2>Add Attendance Record</h2>
+        <button class="modal-close" onclick="closeModal('attendanceModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="attendanceDate">Date</label>
+          <input type="date" id="attendanceDate" />
+        </div>
+        <div class="form-group">
+          <label for="attendanceStatus">Status</label>
+          <select id="attendanceStatus">
+            <option value="true">Present</option>
+            <option value="false">Absent</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="attendanceRemarks">Remarks (Optional)</label>
+          <input type="text" id="attendanceRemarks" placeholder="e.g. Medical leave" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('attendanceModal')">Cancel</button>
+        <button class="btn btn-success" onclick="saveAttendance()">Save Record</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Grade Modal -->
+  <div class="modal-overlay" id="gradeModal">
+    <div class="modal" style="max-width:440px">
+      <div class="modal-header">
+        <h2>Add Grade</h2>
+        <button class="modal-close" onclick="closeModal('gradeModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="gradeSubject">Subject</label>
+          <input type="text" id="gradeSubject" placeholder="e.g. Mathematics" />
+        </div>
+        <div class="form-group">
+          <label for="gradeMarks">Marks (0–100)</label>
+          <input type="number" id="gradeMarks" placeholder="e.g. 85" min="0" max="100" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('gradeModal')">Cancel</button>
+        <button class="btn btn-success" onclick="saveGrade()">Save Grade</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
